@@ -1,2 +1,2 @@
-# admixture_pie_chart_map_tutorial
-Tutorial for visualising admixture on a map
+# Visualising admixture on a map using R
+The scripts and files in this repository cover how to conduct STRUCTURE-like analyses in R using the R package LEA, how to visualise admixture proportions at both the individual and the population level, and how to plot admixture data as pie charts on a map. 
