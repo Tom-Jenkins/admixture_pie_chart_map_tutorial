@@ -29,6 +29,8 @@ library(dplyr)
 library(ggplot2)
 library(rworldmap)
 library(rworldxtra)
+library(ggsn)
+library(sf)
 library(raster)
 library(rgeos)
 library(maps)
@@ -93,7 +95,17 @@ lowest.ce
 
 # Extract Q-matrix for the best run
 qmatrix = as.data.frame(Q(snmf1, K = 2, run = lowest.ce))
-colnames(qmatrix) = c("Cluster 1", "Cluster 2")
+head(qmatrix)
+
+# Label column names of qmatrix
+ncol(qmatrix)
+cluster_names = c()
+for (i in 1:ncol(qmatrix)){
+  cluster_names[i] = paste("Cluster", i)
+}
+cluster_names
+colnames(qmatrix) = cluster_names
+head(qmatrix)
 
 # Add individual IDs
 qmatrix$Ind = indNames(data_filt)
@@ -132,7 +144,7 @@ admix.bar = ggplot(data=qlong, aes(x=Ind, y=value, fill=variable))+
   theme(axis.text.x = element_blank(),
         axis.ticks.x = element_blank(),
         axis.title.x = element_blank(),
-        # strip.text = element_text(colour="black", size=15),
+        strip.text = element_text(colour="black", size=12),
         panel.grid = element_blank(),
         panel.background = element_blank(),
         legend.position = "top",
@@ -163,7 +175,7 @@ head(avg_admix)
 
 # Define a function to plot pie charts using ggplot for each site
 pie_charts = function(admix_df, site, cols){
-  # avg_admix = dataframe in long format of admixture proportions per site 
+  # admix_df = dataframe in long format of admixture proportions per site 
   # site = string 
   # cols = vector of colours of length(clusters)
   ggplot(data = subset(admix_df, Group.1 == site),
@@ -213,18 +225,18 @@ map.outline = getMap(resolution = "high")
 # Crop to boundary and convert to dataframe
 map.outline = crop(map.outline, y = boundary) %>% fortify()
 
-# Load scalebar function
-source("scalebar_function.R")
-
 # Plot basemap
 basemap = ggplot()+
   geom_polygon(data=map.outline, aes(x=long, y=lat, group=group), fill="grey",
                colour="black", size=0.5)+
   coord_quickmap(expand=F)+
+  ggsn::north(map.outline, symbol = 10, scale = 0.06, location = "topleft")+
+  ggsn::scalebar(data = map.outline, dist = 200, dist_unit = "km", height = 0.01,
+                 transform = TRUE, model = "WGS84", 
+                 location = "bottomleft", anchor = c(x = -12.5, y = 45),
+                 st.bottom = FALSE, st.size = 4, st.dist = 0.015)+
   xlab("Longitude")+
   ylab("Latitude")+
-  scaleBar(lon=-10, lat=45, distanceLon=150, distanceLat=30,
-           distanceLegend=65, orientation=F, legend.size = 4)+
   theme(
     axis.text = element_text(colour="black", size=12),
     axis.title = element_text(colour="black", size=14),
